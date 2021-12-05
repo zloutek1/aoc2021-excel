@@ -448,3 +448,192 @@ LET(col_index,ADDRESS(1,6+(ROW(1:1)-1)*7,4),
  ```
  D8*D10
  ```
+ 
+ ## Day 5
+ ### Part 1
+ 
+| DATA       | X1 | Y1 | X2 | Y2 |   | X1 | Y1 | X2 | Y2 |   |  HORI |  VERT | VALID |   | X1 | Y1 | X2 | Y2 |   | X1 | Y1 | X2 | Y2 |   | 5 |   |   |   |   |   |   |   |   |   |   |
+|------------|:--:|:--:|:--:|:--:|:-:|:--:|:--:|:--:|:--:|---|:-----:|:-----:|:-----:|:-:|:--:|:--:|:--:|:--:|:-:|:--:|:--:|:--:|:--:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 0,9 -> 5,9 |  0 |  9 |  5 |  9 |   |  0 |  9 |  5 |  9 |   | FALSE | TRUE  | TRUE  |   |  2 |  1 |  2 |  2 |   |  0 |  9 |  5 |  9 |   | . | . | . | . | . | . | . | 1 | . | . | . |
+| 8,0 -> 0,8 |  8 |  0 |  0 |  8 |   |  0 |  0 |  8 |  8 |   | FALSE | FALSE | FALSE |   |  7 |  0 |  7 |  4 |   |  3 |  4 |  9 |  4 |   | . | . | 1 | . | . | . | . | 1 | . | . | . |
+| 9,4 -> 3,4 |  9 |  4 |  3 |  4 |   |  3 |  4 |  9 |  4 |   | FALSE | TRUE  | TRUE  |   |    |    |    |    |   |  0 |  9 |  2 |  9 |   | . | . | 1 | . | . | . | . | 1 | . | . | . |
+| 2,2 -> 2,1 |  2 |  2 |  2 |  1 |   |  2 |  1 |  2 |  2 |   | TRUE  | FALSE | TRUE  |   |    |    |    |    |   |  1 |  4 |  3 |  4 |   | . | . | . | . | . | . | . | 1 | . | . | . |
+| 7,0 -> 7,4 |  7 |  0 |  7 |  4 |   |  7 |  0 |  7 |  4 |   | TRUE  | FALSE | TRUE  |   |    |    |    |    |   |    |    |    |    |   | . | 1 | 1 | 2 | 1 | 1 | 1 | 2 | 1 | 1 | . |
+| 6,4 -> 2,0 |  6 |  4 |  2 |  0 |   |  2 |  4 |  6 |  0 |   | FALSE | FALSE | FALSE |   |    |    |    |    |   |    |    |    |    |   | . | . | . | . | . | . | . | . | . | . | . |
+| 0,9 -> 2,9 |  0 |  9 |  2 |  9 |   |  0 |  9 |  2 |  9 |   | FALSE | TRUE  | TRUE  |   |    |    |    |    |   |    |    |    |    |   | . | . | . | . | . | . | . | . | . | . | . |
+| 3,4 -> 1,4 |  3 |  4 |  1 |  4 |   |  1 |  4 |  3 |  4 |   | FALSE | TRUE  | TRUE  |   |    |    |    |    |   |    |    |    |    |   | . | . | . | . | . | . | . | . | . | . | . |
+| 0,0 -> 8,8 |  0 |  0 |  8 |  8 |   |  0 |  0 |  8 |  8 |   | FALSE | FALSE | FALSE |   |    |    |    |    |   |    |    |    |    |   | . | . | . | . | . | . | . | . | . | . | . |
+| 5,5 -> 8,2 |  5 |  5 |  8 |  2 |   |  5 |  5 |  8 |  2 |   | FALSE | FALSE | FALSE |   |    |    |    |    |   |    |    |    |    |   | 2 | 2 | 2 | 1 | 1 | 1 | . | . | . | . | . |
+|            |    |    |    |    |   |    |    |    |    |   |       |       |       |   |    |    |    |    |   |    |    |    |    |   | . | . | . | . | . | . | . | . | . | . | . |
+
+The input us loaded into the first column and split into the following four.
+The coordinates get reordered so they ascned on the X axis.
+The K:L columns check if the line is a HORIZONTAL or VERTICAL line.
+The columns P:S filter the data into only the HORIZONTAL lines.
+The columns U:X filter the data into only the VERTICAL lines.
+The area Z2:AJ12 calculates the state visually.
+Z1 contains the result.
+
+**Steps:**
+
+1. split input into four parts
+```
+INT(LEFT(A2#, FIND(",",A2#) - 1))
+	-- and --
+LET(start, FIND(",", A2#) + 1,
+           INT(MID(A2#, start, FIND(" -> ", A2#) - start)))
+	-- and --
+LET(start,FIND(" -> ", A2#) + 4,
+           INT(RIGHT(A2#, LEN(A2#) - FIND(",", A2#, start))))
+```
+
+2. swap the input if xs are smaller or the x are equal and ys are smaller
+```
+xs:      IF(B2#<=D2#,B2#,D2#)
+ys:      IF(B2#<>D2#,C2#, IF(C2#<=E2#,C2#,E2#))
+``` 
+
+3. check if HORIZONTAL `G2#=I2#`
+4. check if VERTICAL `H2#=J2#`
+
+5. filter the HORIZONTAL lines
+```
+LET(hor_index, FILTER(ROW($G$2#), $G$2#=$I$2#), 
+	INDEX(G:G, hor_index))
+```
+
+6. filter the VERTICAL lines
+```
+LET(ver_index, FILTER(ROW($H$2#), $H$2#=$J$2#), 
+	INDEX(G:G, ver_index))
+```
+
+7. calculate the intersection for each cell
+```
+LET(y, ROW(1:1)-1,
+    x, COLUMN(A:A)-1,
+    horizontal_intersects,
+        LET(match,AGGREGATE(15,3,($P$2#=x)/($P$2#=x)*ROW($P$2#),ROW($P$2#)-1),
+            SUM(IF(ISERROR(match), 0, LET(
+                indexes, FILTER(match,ISNUMBER(match)),
+                left, INDEX($Q$2#, indexes-1),
+                right, INDEX($S$2#, indexes-1),
+                IF(left <= y, IF(y <= right, 1, 0), 0))))),
+    vertical_intersects,
+        LET(match,AGGREGATE(15,3,($V$2#=y)/($V$2#=y)*ROW($V$2#),ROW($V$2#)-1),
+            SUM(IF(ISERROR(match), 0, LET(
+                indexes, FILTER(match,ISNUMBER(match)),
+                left, INDEX($U$2#, indexes-1),
+                right, INDEX($W$2#, indexes-1),
+                IF(left <= x, IF(x <= right, 1, 0), 0))))),
+   intersects, SUM(horizontal_intersects, vertical_intersects),
+   IF(intersects=0, ".", intersects))
+```
+  - first calculate the cell's (x, y) coordinates
+  - calculate the intersections with HORIZONTAL lines
+	```
+	LET(match,AGGREGATE(15,3,($P$2#=x)/($P$2#=x)*ROW($P$2#),ROW($P$2#)-1),
+            SUM(IF(ISERROR(match), 0, LET(
+                indexes, FILTER(match,ISNUMBER(match)),
+                left, INDEX($Q$2#, indexes-1),
+                right, INDEX($S$2#, indexes-1),
+                IF(left <= y, IF(y <= right, 1, 0), 0))))),
+	```
+	  - `AGGREGATE(15,3,($P$2#=x)/($P$2#=x)*ROW($P$2#),ROW($P$2#)-1)` returns all indexes matching condition (= x)
+	  - `FILTER(match,ISNUMBER(match))` returns only the indexes, without the errors
+	  - `INDEX($Q$2#, indexes-1)` get the Y1
+	  - `INDEX($S$2#, indexes-1)` get the Y2
+	  - `IF(left <= x, IF(x <= right, 1, 0), 0)))))` return 1 if the point is intersected
+	  - `SUM(IF(ISERROR(match), 0, ...` sum the matched intersects and replace erros with 0
+
+8. do the same for VERTICAL lines
+
+9. sum the intersections
+```
+SUM(horizontal_intersects, vertical_intersects)
+```
+
+10. get the result
+```
+LET(range, Z2:ARU635,
+           values, IF(ISTEXT(range), 0, range),
+           SUM(IF(values>1, 1, 0)))
+```
+
+### Part2
+
+| DATA       | X1 | Y1 | X2 | Y2 |   | X1 | Y1 | X2 | Y2 |   |  HORI |  VERT |  LDIA |  RDIA | VALID |   |     |     |   |     |   | 12 |   |     |     |     |     |     |     |     |     |     |   |   |   |
+|------------|:--:|:--:|:--:|:--:|:-:|:--:|:--:|:--:|:--:|---|:-----:|:-----:|:-----:|:-----:|:-----:|:-:|:---:|:---:|:-:|:---:|:-:|:--:|:-:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:-:|:-:|:-:|
+| 0,9 -> 5,9 |  0 |  9 |  5 |  9 |   |  0 |  9 |  5 |  9 |   | TRUE  | FALSE | FALSE | FALSE | TRUE  |   | 0,9 | 0,9 | 2 | 0,9 | 2 |  2 |   | 0,9 | 1,9 | 2,9 | 3,9 | 4,9 | 5,9 |     |     |     |   |   |   |
+| 8,0 -> 0,8 |  8 |  0 |  0 |  8 |   |  0 |  8 |  8 |  0 |   | FALSE | FALSE | FALSE | TRUE  | TRUE  |   | 1,9 | 1,9 | 2 | 1,9 | 2 |  2 |   | 0,8 | 1,7 | 2,6 | 3,5 | 4,4 | 5,3 | 6,2 | 7,1 | 8,0 |   |   |   |
+| 9,4 -> 3,4 |  9 |  4 |  3 |  4 |   |  3 |  4 |  9 |  4 |   | TRUE  | FALSE | FALSE | FALSE | TRUE  |   | 2,9 | 2,9 | 2 | 2,9 | 2 |  2 |   | 3,4 | 4,4 | 5,4 | 6,4 | 7,4 | 8,4 | 9,4 |     |     |   |   |   |
+| 2,2 -> 2,1 |  2 |  2 |  2 |  1 |   |  2 |  1 |  2 |  2 |   | FALSE | TRUE  | FALSE | FALSE | TRUE  |   | 3,9 | 3,9 | 1 | 3,9 | 1 |  3 |   | 2,1 | 2,2 |     |     |     |     |     |     |     |   |   |   |
+| 7,0 -> 7,4 |  7 |  0 |  7 |  4 |   |  7 |  0 |  7 |  4 |   | FALSE | TRUE  | FALSE | FALSE | TRUE  |   | 4,9 | 4,9 | 1 | 4,9 | 1 |  2 |   | 7,0 | 7,1 | 7,2 | 7,3 | 7,4 |     |     |     |     |   |   |   |
+| 6,4 -> 2,0 |  6 |  4 |  2 |  0 |   |  2 |  0 |  6 |  4 |   | FALSE | FALSE | TRUE  | FALSE | TRUE  |   | 5,9 | 5,9 | 1 | 5,9 | 1 |  2 |   | 2,0 | 3,1 | 4,2 | 5,3 | 6,4 |     |     |     |     |   |   |   |
+| 0,9 -> 2,9 |  0 |  9 |  2 |  9 |   |  0 |  9 |  2 |  9 |   | TRUE  | FALSE | FALSE | FALSE | TRUE  |   |     | 0,8 | 1 | 0,8 | 1 |  2 |   | 0,9 | 1,9 | 2,9 |     |     |     |     |     |     |   |   |   |
+| 3,4 -> 1,4 |  3 |  4 |  1 |  4 |   |  1 |  4 |  3 |  4 |   | TRUE  | FALSE | FALSE | FALSE | TRUE  |   |     | 1,7 | 1 | 1,7 | 1 |  3 |   | 1,4 | 2,4 | 3,4 |     |     |     |     |     |     |   |   |   |
+| 0,0 -> 8,8 |  0 |  0 |  8 |  8 |   |  0 |  0 |  8 |  8 |   | FALSE | FALSE | TRUE  | FALSE | TRUE  |   |     | 2,6 | 1 | 2,6 | 1 |  2 |   | 0,0 | 1,1 | 2,2 | 3,3 | 4,4 | 5,5 | 6,6 | 7,7 | 8,8 |   |   |   |
+| 5,5 -> 8,2 |  5 |  5 |  8 |  2 |   |  5 |  5 |  8 |  2 |   | FALSE | FALSE | FALSE | TRUE  | TRUE  |   |     | 3,5 | 1 | 3,5 | 1 |  2 |   | 5,5 | 6,4 | 7,3 | 8,2 |     |     |     |     |     |   |   |   |
+
+Same as in the Part1 the input get parsed and reordered.
+Now, we calculate HORIZONTAL, VERTICAL, LEFT DIAGONAL and RIGHT DIAGONAL.
+For each line we generate all its points from the column Y onwards.
+Then we flatten the 2D array into the column R.
+We remove the whitespace in the column S.
+Then we calculate the occurances for each point.
+The columns U:V contain only unique points.
+Lastly we filter the values with more then one intersect and calculate the result.
+
+**Steps:**
+
+1. - 4. same as Step1
+5. check if LEFT DIAGONAL `(I2# - G2#) = (J2# - H2#)`
+6. check if RIGHT DIAGONAL `(I2# - G2#) = -(J2# - H2#)`
+7. generate points for each line
+```
+IF(L2=TRUE,TRANSPOSE((G2+SEQUENCE(I2-G2+1)-1)&","&H2),
+IF(M2=TRUE,TRANSPOSE(G2&","&(H2+SEQUENCE(J2-H2+1)-1)),
+IF(N2=TRUE,TRANSPOSE((G2+SEQUENCE(I2-G2+1)-1)&","&(H2+SEQUENCE(J2-H2+1)-1)),
+IF(O2=TRUE,TRANSPOSE((G2+SEQUENCE(I2-G2+1)-1)&","&(H2+(-1)*SEQUENCE(H2-J2+1)+1)),
+""
+))))
+```
+
+8. flatten the 2D array into a 1D array
+```
+LET(range, $Y$2:$AR$19,
+    value, LET(columns,COLUMNS(range),
+               row_, ROUNDUP(ROW(A1)/columns, 0),
+			   col_, MOD(ROW(A1)-1, columns)+1,
+			   INDEX(range, row_, col_)),
+    IF(ISERROR(value), "", IF(value=0, "", value)))
+```
+  - `ROUNDUP(ROW(A1)/columns, 0)` divide the index by the number of columns, making the inceremnt every n times.
+  - `MOD(ROW(A1)-1, columns)+1` roll over the counter when reaching the end of a column
+  
+
+9. remove whitespace from the 1D array
+```
+FILTER(R2:R1048576, R2:R1048576<>"")
+```
+
+10. count the occurences
+```
+COUNTIF(S2#, S2#)
+```
+
+11. filter the unique values
+```
+UNIQUE(S2:T54, 0)
+```
+
+12. filter the points with more then 2 intersections
+```
+LET(cols,INDEX(U2#, 0, 2),
+    FILTER(cols, cols>1))
+```
+
+13. calculate the result
+```
+COUNT(W2#)
+```
