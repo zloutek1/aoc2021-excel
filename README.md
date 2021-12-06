@@ -637,3 +637,77 @@ LET(cols,INDEX(U2#, 0, 2),
 ```
 COUNT(W2#)
 ```
+
+## Day 6
+### Part 1 & Part 2
+
+| Data       | 0  | Split |   |             |   |         | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |   | sums |
+|------------|----|:-----:|---|-------------|---|---------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|---|------|
+| 3,4,3,1,2, | 2  |   3   |   | RESULT      |   | initial | 0 | 1 | 1 | 2 | 1 | 0 | 0 | 0 | 0 |   | 5    |
+|            | 4  |   4   |   | 5934        |   | day 1   | 1 | 1 | 2 | 1 | 0 | 0 | 0 | 0 | 0 |   | 5    |
+|            | 6  |   3   |   |             |   | day 2   | 1 | 2 | 1 | 0 | 0 | 0 | 1 | 0 | 1 |   | 6    |
+|            | 8  |   1   |   | RESULT      |   | day 3   | 2 | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 1 |   | 7    |
+|            | 10 |   2   |   | 26984457539 |   | day 4   | 1 | 0 | 0 | 0 | 1 | 1 | 3 | 1 | 2 |   | 9    |
+|            |    |       |   |             |   | day 5   | 0 | 0 | 0 | 1 | 1 | 3 | 2 | 2 | 1 |   | 10   |
+
+First we load the input data and append a ","
+Then we find the position of each ","
+We the take the substring basically splitting iteration
+
+Then we calculate each occurence and store it into as the initial row
+each iteration shifts the values to the left from 0-6
+Each fish at day 0 spawns a new fish as well as increments itself into day 6
+Each day is summed up and the results just fetch the correct result.
+
+**Steps:**
+
+1. load the data and append ","
+```
+Example[Data]&","
+```
+
+2. find the next ","
+```
+IFERROR(SEARCH(",", $A$2, B1 + 1), "")
+```
+
+3. take a substring between two ","
+```
+IFERROR(INT(MID($A$2, B1+1, B2-B1-1)), "")
+```
+
+4. count the number of occurences for each day
+```
+COUNTIF($C$2:$C$641, H1)
+```
+
+5. columns `I:N` get shifted to `H:M`
+```
+I2:N2
+```
+
+6. day 6 is calculated by the sum of existing fish + the aging new fish
+```
+H2+O2
+```
+
+7. day 7 is just an aging day 8
+```
+P2
+```
+
+8. day 8 is just a copy of day 0
+```
+H2
+```
+
+9. sum all existing fishes
+```
+SUM(H3:P3)
+```
+
+10. obtain the result
+```
+part1:     VLOOKUP("day 80", $G$3:$R$279, 12,FALSE )
+part2:     VLOOKUP("day 256", $G$3:$R$279, 12, FALSE)
+```
